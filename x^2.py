@@ -7,6 +7,7 @@ c = int(input('c:'))
 
 print('Уравнение имеет вид', a, 'x^2+', b, 'x+', c)
 
+
 def _sqad(q, w, s):
     d: int = w**2-4*q*s
     print('Descriminant=', d)
@@ -19,5 +20,6 @@ def _sqad(q, w, s):
     else:
         x = -w/(2*q)
         print('x =', x)
+
 
 _sqad(a,b,c)
