@@ -1,15 +1,17 @@
 import socket
 
-data = input('a:')
-
-
+data = None
 sock = socket.socket()
 sock.connect(('localhost', 21090))
-sock.send(bytes(data, "utf8"))
 
-data = sock.recv(1024)
+data = input('Message:')
+
+while data != "quite":
+    sock.send(bytes(data, "utf8"))
+    data = sock.recv(1024)
+    print(data)
+    data = input('Message:')
+
+print('Disconnect...')
+
 sock.close()
-
-
-print(data)
-
