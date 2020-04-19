@@ -3,16 +3,16 @@ from threading import Thread
 import time
 
 
-def accept_incoming_connections():
+def accept_connections():
     while True:
         client, client_address = SERVER.accept()
         print('%s:%s has connected.' % client_address)
         client.send(bytes('Type your name and press enter!', 'utf8'))
         addresses[client] = client_address
-        Thread(target=handle_client, args=(client,)).start()
+        Thread(target=start_client, args=(client,)).start()
 
 
-def handle_client(client):
+def start_client(client):
     name = client.recv(1024).decode('utf8')
     client.send(bytes('[' + time.ctime() + '] ' + 'Welcome %s!' % name, 'utf8'))
     msg = '%s has joined the chat!' % name
@@ -21,10 +21,10 @@ def handle_client(client):
 
     while True:
         msg = client.recv(1024)
-        if msg != bytes('{quit}', 'utf8'):
+        if msg != bytes('[{esc}]', 'utf8'):
             broadcast(msg, name + ': ')
         else:
-            client.send(bytes('{quit}', 'utf8'))
+            client.send(bytes('[{esc}]', 'utf8'))
             client.close()
             del clients[client]
             broadcast(bytes('[' + time.ctime() + '] ' + '%s has left the chat.' % name, 'utf8'))
@@ -43,9 +43,9 @@ SERVER = socket(AF_INET, SOCK_STREAM)
 SERVER.bind(('', 21090))
 
 if __name__ == "__main__":
-    SERVER.listen(5)
+    SERVER.listen(100)
     print("Waiting for connection...")
-    ACCEPT_THREAD = Thread(target=accept_incoming_connections)
+    ACCEPT_THREAD = Thread(target=accept_connections)
     ACCEPT_THREAD.start()
     ACCEPT_THREAD.join()
     SERVER.close()
