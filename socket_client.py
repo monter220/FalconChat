@@ -8,6 +8,7 @@ def receive():
         try:
             msg = client_socket.recv(1024).decode('utf8')
             msg_list.insert(tkinter.END, msg)
+
         except OSError:
             break
 
@@ -27,7 +28,7 @@ def esc(event=None):
     top.quit()
 
 
-def on_closing(event=None):
+def If_window_close(event=None):
     new_msg.set('[{esc}]')
     send()
 
@@ -39,8 +40,9 @@ messages_frame = tkinter.Frame()
 scrollbar = tkinter.Scrollbar(messages_frame)
 scrollbar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
 msg_list = tkinter.Listbox(messages_frame, height=15, width=80, yscrollcommand=scrollbar.set)
-msg_list.pack(side=tkinter.LEFT, fill=tkinter.BOTH)
-msg_list.pack()
+msg_list.pack(side=tkinter.RIGHT, fill=tkinter.BOTH)
+client_list = tkinter.Listbox(messages_frame, height=15, width=15)
+client_list.pack(side=tkinter.LEFT, fill=tkinter.BOTH)
 messages_frame.pack()
 
 new_msg = tkinter.StringVar()
@@ -52,6 +54,8 @@ send_button = tkinter.Button(text='Send', command=send)
 send_button.pack(side=tkinter.LEFT)
 quit_button = tkinter.Button(text='esc', command=esc)
 quit_button.pack(side=tkinter.LEFT)
+
+top.protocol('WM_DELETE_WINDOW', If_window_close)
 
 IP_add = input('Server_IP_address: ')
 PORT = input('Server_port: ')
