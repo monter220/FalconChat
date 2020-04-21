@@ -17,6 +17,15 @@ def accept_connections():
 def start_client(client, address):
     today = datetime.datetime.today()
     name = client.recv(1024).decode('utf8')
+    print(clients)
+    while True:
+        for i in clients:
+            if name == clients[i]:
+                client.send(bytes('User with the same name already exists', 'utf8'))
+                client.send(bytes('Type your name and press enter!', 'utf8'))
+                start_client(client, address)
+        break
+
     client.send(bytes('Welcome %s!' % name, 'utf8'))
     msg = '%s has joined the chat!' % name
     broadcast(bytes(msg, 'utf8'))
