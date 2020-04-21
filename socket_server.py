@@ -1,7 +1,7 @@
 from socket import *
 from threading import Thread
-import time
 import json
+import datetime
 
 
 def accept_connections():
@@ -15,12 +15,14 @@ def accept_connections():
 
 
 def start_client(client, address):
+    today = datetime.datetime.today()
     name = client.recv(1024).decode('utf8')
-    client.send(bytes('[' + time.ctime() + '] ' + 'Welcome %s!' % name, 'utf8'))
+    client.send(bytes('Welcome %s!' % name, 'utf8'))
     msg = '%s has joined the chat!' % name
-    broadcast(bytes('[' + time.ctime() + '] ' + msg, 'utf8'))
+    broadcast(bytes(msg, 'utf8'))
     clients[address] = name
     client.send(bytes(json.dumps(clients), 'utf8'))
+    print(clients) #поиск ошибок
 
     while True:
         msg = client.recv(1024)
@@ -28,17 +30,19 @@ def start_client(client, address):
             broadcast(msg, name + ': ')
         elif msg == bytes('[{reload_clients}]', 'utf8'):
             client.send(bytes(json.dumps(clients), 'utf8'))
+            client.send(bytes('[' + today.strftime("%H:%M:%S") + '] ' + 'client list updated', 'utf8'))
         else:
-            client.send(bytes('[{esc}]', 'utf8'))
+            del clients[address]
+            print(clients) #поиск ошибок
+            broadcast(bytes('%s has left the chat.' % name, 'utf8'))
             client.close()
-            del clients[client]
-            broadcast(bytes('[' + time.ctime() + '] ' + '%s has left the chat.' % name, 'utf8'))
             break
 
 
 def broadcast(msg, prefix=''):
+    today = datetime.datetime.today()
     for client in clients:
-        addresses[client].send(bytes('[' + time.ctime() + '] ' + prefix, 'utf8') + msg)
+        addresses[client].send(bytes('[' + today.strftime("%H:%M:%S") + '] ' + prefix, 'utf8') + msg)
 
 
 clients = {}
@@ -48,7 +52,7 @@ SERVER = socket(AF_INET, SOCK_STREAM)
 SERVER.bind(('', 21090))
 
 if __name__ == "__main__":
-    SERVER.listen()
+    SERVER.listen(100)
     print("Waiting for connection...")
     ACCEPT_THREAD = Thread(target=accept_connections)
     ACCEPT_THREAD.start()
