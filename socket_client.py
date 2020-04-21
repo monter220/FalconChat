@@ -11,7 +11,11 @@ def receive():
             if msg[0] == '{':
                 msg = json.loads(msg)
                 for client in msg:
-                    client_list.insert(tkinter.END, msg[client])
+                    test: list = msg[client]
+                    print(test)
+                    client_list.delete(0, tkinter.END)
+                    for i in msg:
+                        client_list.insert(0, msg[i])
             else:
                 msg_list.insert(tkinter.END, msg)
         except OSError:
@@ -24,6 +28,8 @@ def send(event=None):
     client_socket.send(bytes(msg, 'utf8'))
     if msg == '[{esc}]':
         esc()
+    elif msg == '[{reload_clients}]':
+        update_clients_list()
 
 
 def esc(event=None):
@@ -31,6 +37,11 @@ def esc(event=None):
     client_socket.send(bytes(msg, 'utf8'))
     client_socket.close()
     top.quit()
+
+
+def update_clients_list(event=None):
+    msg = '[{reload_clients}]'
+    client_socket.send(bytes(msg, 'utf8'))
 
 
 def If_window_close(event=None):
@@ -50,15 +61,20 @@ client_list = tkinter.Listbox(messages_frame, height=15, width=15)
 client_list.pack(side=tkinter.LEFT, fill=tkinter.BOTH)
 messages_frame.pack()
 
+client_update_button = tkinter.Button(text='Update clients-list', command=update_clients_list)
+client_update_button.pack(side=tkinter.LEFT)
+
 new_msg = tkinter.StringVar()
 new_msg.set('Put your name here')
+
+quit_button = tkinter.Button(text='esc', command=esc)
+quit_button.pack(side=tkinter.RIGHT)
+send_button = tkinter.Button(text='Send', command=send)
+send_button.pack(side=tkinter.RIGHT)
+
 entry_field = tkinter.Entry(textvariable=new_msg)
 entry_field.bind('<Return>', send)
-entry_field.pack(side=tkinter.LEFT)
-send_button = tkinter.Button(text='Send', command=send)
-send_button.pack(side=tkinter.LEFT)
-quit_button = tkinter.Button(text='esc', command=esc)
-quit_button.pack(side=tkinter.LEFT)
+entry_field.pack(side=tkinter.RIGHT)
 
 top.protocol('WM_DELETE_WINDOW', If_window_close)
 
