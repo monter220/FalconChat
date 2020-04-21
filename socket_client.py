@@ -1,14 +1,19 @@
 from socket import *
 from threading import Thread
 import tkinter
+import json
 
 
 def receive():
     while True:
         try:
             msg = client_socket.recv(1024).decode('utf8')
-            msg_list.insert(tkinter.END, msg)
-
+            if msg[0] == '{':
+                msg = json.loads(msg)
+                for client in msg:
+                    client_list.insert(tkinter.END, msg[client])
+            else:
+                msg_list.insert(tkinter.END, msg)
         except OSError:
             break
 
