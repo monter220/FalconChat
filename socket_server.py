@@ -18,13 +18,19 @@ def start_client(client, address):
     today = datetime.datetime.today()
     name = client.recv(1024).decode('utf8')
     print(clients)
+    name_correct = True
     while True:
         for i in clients:
             if name == clients[i]:
+                name_correct = False
                 client.send(bytes('User with the same name already exists', 'utf8'))
                 client.send(bytes('Type your name and press enter!', 'utf8'))
-                start_client(client, address)
-        break
+                name = client.recv(1024).decode('utf8')
+                break
+            else:
+                name_correct = True
+        if name_correct:
+            break
 
     client.send(bytes('Welcome %s!' % name, 'utf8'))
     msg = '%s has joined the chat!' % name
