@@ -60,8 +60,8 @@ def start_client(client, address):
                             if name != send_name:
                                 addresses[send_address].send(bytes('[' + today.strftime("%H:%M:%S") + '] ' + name +
                                                                    '->Me: ' + msg[send_name], 'utf8'))
-                                client.send(bytes('[' + today.strftime("%H:%M:%S") + '] ' + name +
-                                                  '->' + send_name + ': ' + msg[send_name], 'utf8'))
+                                client.send(bytes('[' + today.strftime("%H:%M:%S") + '] Me->' +
+                                                  send_name + ': ' + msg[send_name], 'utf8'))
                             else:
                                 client.send(bytes('I don’t know why you did it, but...', 'utf8'))
                                 client.send(bytes('[' + today.strftime("%H:%M:%S") + '] Me->Me: '
