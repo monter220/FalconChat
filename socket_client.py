@@ -10,12 +10,11 @@ def receive():
             msg = client_socket.recv(1024).decode('utf8')
             if msg[0] == '{':
                 msg = json.loads(msg)
-                for client in msg:
-                    test: list = msg[client]
-                    print(test)
-                    client_list.delete(0, tkinter.END)
-                    for i in msg:
-                        client_list.insert(0, msg[i])
+                print(msg)                                      # for testing
+                client_list.delete(0, tkinter.END)
+                for i in msg:
+                    print(i)
+                    client_list.insert(0, msg[i])
             else:
                 msg_list.insert(tkinter.END, msg)
         except OSError:
@@ -25,6 +24,11 @@ def receive():
 def send(event=None):
     msg = new_msg.get()
     new_msg.set("")
+    send_name = new_destination.get()
+    new_destination.set(send_name)
+    send_msg = {send_name: msg}
+    print(send_msg)
+    msg = json.dumps(send_msg)
     client_socket.send(bytes(msg, 'utf8'))
     if msg == '[{esc}]':
         esc()
@@ -34,6 +38,8 @@ def send(event=None):
 
 def esc(event=None):
     msg = '[{esc}]'
+    send_msg = {'': msg}
+    msg = json.dumps(send_msg)
     client_socket.send(bytes(msg, 'utf8'))
     client_socket.close()
     top.quit()
@@ -41,6 +47,8 @@ def esc(event=None):
 
 def update_clients_list(event=None):
     msg = '[{reload_clients}]'
+    send_msg = {'': msg}
+    msg = json.dumps(send_msg)
     client_socket.send(bytes(msg, 'utf8'))
 
 
@@ -67,6 +75,9 @@ client_update_button.pack(side=tkinter.LEFT)
 new_msg = tkinter.StringVar()
 new_msg.set('Put your name here')
 
+new_destination = tkinter.StringVar()
+new_destination.set('All chat clients')
+
 quit_button = tkinter.Button(text='esc', command=esc)
 quit_button.pack(side=tkinter.RIGHT)
 send_button = tkinter.Button(text='Send', command=send)
@@ -75,6 +86,9 @@ send_button.pack(side=tkinter.RIGHT)
 entry_field = tkinter.Entry(textvariable=new_msg)
 entry_field.bind('<Return>', send)
 entry_field.pack(side=tkinter.RIGHT)
+
+entry_destination = tkinter.Entry(textvariable=new_destination)
+entry_destination.pack(side=tkinter.TOP)
 
 top.protocol('WM_DELETE_WINDOW', If_window_close)
 
