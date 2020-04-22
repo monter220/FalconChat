@@ -16,8 +16,13 @@ def accept_connections():
 
 def start_client(client, address):
     today = datetime.datetime.today()
-    name = client.recv(1024).decode('utf8')
-    print(clients)
+    msg = client.recv(1024).decode('utf8')
+    print(msg)    #for test
+    msg = json.loads(msg)
+    print(msg)     #for test
+    for send_name in msg:
+        name = msg[send_name]
+    print(clients)    #for test
     name_correct = True
     while True:
         for i in clients:
@@ -25,7 +30,10 @@ def start_client(client, address):
                 name_correct = False
                 client.send(bytes('User with the same name already exists', 'utf8'))
                 client.send(bytes('Type your name and press enter!', 'utf8'))
-                name = client.recv(1024).decode('utf8')
+                msg = client.recv(1024).decode('utf8')
+                msg = json.loads(msg)
+                for send_name in msg:
+                    name = msg[send_name]
                 break
             else:
                 name_correct = True
@@ -37,21 +45,47 @@ def start_client(client, address):
     broadcast(bytes(msg, 'utf8'))
     clients[address] = name
     client.send(bytes(json.dumps(clients), 'utf8'))
-    print(clients) #поиск ошибок
+    print(clients) #for test
 
     while True:
-        msg = client.recv(1024)
-        if msg != bytes('[{esc}]', 'utf8') and msg != bytes('[{reload_clients}]', 'utf8'):
-            broadcast(msg, name + ': ')
-        elif msg == bytes('[{reload_clients}]', 'utf8'):
-            client.send(bytes(json.dumps(clients), 'utf8'))
-            client.send(bytes('[' + today.strftime("%H:%M:%S") + '] ' + 'client list updated', 'utf8'))
-        else:
-            del clients[address]
-            print(clients) #поиск ошибок
-            broadcast(bytes('%s has left the chat.' % name, 'utf8'))
-            client.close()
-            break
+        msg = client.recv(1024).decode('utf8')
+        msg = json.loads(msg)
+        for send_name in msg:
+            if send_name != '' and send_name != 'All' and send_name != 'All chat clients':
+                name_not_found = True
+                while True:
+                    for send_address in clients:
+                        if send_name == clients[send_address]:
+                            name_not_found = False
+                            if name != send_name:
+                                addresses[send_address].send(bytes('[' + today.strftime("%H:%M:%S") + '] ' + name +
+                                                                   '->Me: ' + msg[send_name], 'utf8'))
+                                client.send(bytes('[' + today.strftime("%H:%M:%S") + '] ' + name +
+                                                  '->' + send_name + ': ' + msg[send_name], 'utf8'))
+                            else:
+                                client.send(bytes('I don’t know why you did it, but...', 'utf8'))
+                                client.send(bytes('[' + today.strftime("%H:%M:%S") + '] Me->Me: '
+                                                  + msg[send_name], 'utf8'))
+                            break
+                        else:
+                            name_not_found = True
+                    if name_not_found:
+                        client.send(bytes('[' + today.strftime("%H:%M:%S") + '] ' + send_name + ' not found', 'utf8'))
+                        break
+                    break
+            else:
+                msg = bytes(msg[send_name], 'utf8')
+                if msg != bytes('[{esc}]', 'utf8') and msg != bytes('[{reload_clients}]', 'utf8'):
+                    broadcast(msg, name + ': ')
+                elif msg == bytes('[{reload_clients}]', 'utf8'):
+                    client.send(bytes(json.dumps(clients), 'utf8'))
+                    client.send(bytes('[' + today.strftime("%H:%M:%S") + '] ' + 'client list updated', 'utf8'))
+                else:
+                    del clients[address]
+                    print(clients)  #for test
+                    broadcast(bytes('%s has left the chat.' % name, 'utf8'))
+                    client.close()
+                    break
 
 
 def broadcast(msg, prefix=''):
