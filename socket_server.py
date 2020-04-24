@@ -10,18 +10,14 @@ def accept_connections():
         print('%s:%s has connected.' % client_address)
         client.send(bytes('Type your name and press enter!', 'utf8'))
         address = '%s:%s' % (client_address[0], client_address[1])
-        # addresses[address] = client
         Thread(target=start_client, args=(client, address)).start()
 
 
 def start_client(client, address):
     today = datetime.datetime.today()
     msg = client.recv(1024).decode('utf8')
-    print(msg)    #for test
     msg = json.loads(msg)
-    print(msg)     #for test
     name = msg[list(msg.keys())[0]]
-    print(clients, name)    #for test
     name_correct = True
     while True:
         for clients_name in clients:
@@ -43,8 +39,6 @@ def start_client(client, address):
     broadcast(bytes(msg, 'utf8'))
     clients[name] = client
     reload_clients()
-    # client.send(bytes(json.dumps({'reload_clients': list(clients.keys())}), 'utf8'))
-    print(clients) #for test
 
     while True:
         msg = client.recv(1024).decode('utf8')
@@ -66,24 +60,17 @@ def start_client(client, address):
                             client.send(bytes('[' + today.strftime("%H:%M:%S") + '] Me->Me: '
                                               + msg[send_name], 'utf8'))
                         break
-                    # else:
-                    #     name_not_found = True
                 if name_not_found:
                     client.send(bytes('[' + today.strftime("%H:%M:%S") + '] ' + send_name + ' not found', 'utf8'))
                     break
                 break
         else:
             msg_to_send = bytes(msg[send_name], 'utf8')
-            # if msg_to_send != bytes('[{esc}]', 'utf8') and msg_to_send != bytes('[{reload_clients}]', 'utf8'):
             if msg_to_send != bytes('[{esc}]', 'utf8'):
                 client.send(bytes('[' + today.strftime("%H:%M:%S") + '] Me: ', 'utf8') + msg_to_send)
                 broadcast_without_addresse(name, msg_to_send, name + ': ')
-            # elif msg_to_send == bytes('[{reload_clients}]', 'utf8'):
-            #     client.send(bytes(json.dumps({'reload_clients': list(clients.keys())}), 'utf8'))
-            #     client.send(bytes('[' + today.strftime("%H:%M:%S") + '] ' + 'client list updated', 'utf8'))
             else:
                 del clients[name]
-                print(clients)  # for test
                 broadcast(bytes('%s has left the chat.' % name, 'utf8'))
                 reload_clients()
                 client.close()
@@ -112,7 +99,6 @@ def reload_clients():
 
 
 clients = {'All chat clients': ''}
-# addresses = {}
 
 SERVER = socket(AF_INET, SOCK_STREAM)
 SERVER.bind(('', 21090))
