@@ -10,7 +10,7 @@ def accept_connections():
         print('%s:%s has connected.' % client_address)
         client.send(bytes('Type your name and press enter!', 'utf8'))
         address = '%s:%s' % (client_address[0], client_address[1])
-        addresses[address] = client
+        # addresses[address] = client
         Thread(target=start_client, args=(client, address)).start()
 
 
@@ -20,20 +20,18 @@ def start_client(client, address):
     print(msg)    #for test
     msg = json.loads(msg)
     print(msg)     #for test
-    for send_name in msg:
-        name = msg[send_name]
-    print(clients)    #for test
+    name = msg[list(msg.keys())[0]]
+    print(clients, name)    #for test
     name_correct = True
     while True:
-        for i in clients:
-            if name == clients[i]:
+        for clients_name in clients:
+            if name == clients_name:
                 name_correct = False
                 client.send(bytes('User with the same name already exists', 'utf8'))
                 client.send(bytes('Type your name and press enter!', 'utf8'))
                 msg = client.recv(1024).decode('utf8')
                 msg = json.loads(msg)
-                for send_name in msg:
-                    name = msg[send_name]
+                name = msg[list(msg.keys())[0]]
                 break
             else:
                 name_correct = True
@@ -43,59 +41,78 @@ def start_client(client, address):
     client.send(bytes('Welcome %s!' % name, 'utf8'))
     msg = '%s has joined the chat!' % name
     broadcast(bytes(msg, 'utf8'))
-    clients[address] = name
-    client.send(bytes(json.dumps(clients), 'utf8'))
+    clients[name] = client
+    reload_clients()
+    # client.send(bytes(json.dumps({'reload_clients': list(clients.keys())}), 'utf8'))
     print(clients) #for test
 
     while True:
         msg = client.recv(1024).decode('utf8')
         msg = json.loads(msg)
-        for send_name in msg:
-            if send_name != '' and send_name != 'All' and send_name != 'All chat clients':
-                name_not_found = True
-                while True:
-                    for send_address in clients:
-                        if send_name == clients[send_address]:
-                            name_not_found = False
-                            if name != send_name:
-                                addresses[send_address].send(bytes('[' + today.strftime("%H:%M:%S") + '] ' + name +
-                                                                   '->Me: ' + msg[send_name], 'utf8'))
-                                client.send(bytes('[' + today.strftime("%H:%M:%S") + '] Me->' +
-                                                  send_name + ': ' + msg[send_name], 'utf8'))
-                            else:
-                                client.send(bytes('I don’t know why you did it, but...', 'utf8'))
-                                client.send(bytes('[' + today.strftime("%H:%M:%S") + '] Me->Me: '
-                                                  + msg[send_name], 'utf8'))
-                            break
+        send_name = list(msg.keys())[0]
+        if send_name != '' and send_name != 'All chat clients':
+            name_not_found = True
+            while True:
+                for client_name in clients:
+                    if send_name == client_name:
+                        name_not_found = False
+                        if name != send_name:
+                            clients[client_name].send(bytes('[' + today.strftime("%H:%M:%S") + '] ' + name +
+                                                            '->Me: ' + msg[send_name], 'utf8'))
+                            client.send(bytes('[' + today.strftime("%H:%M:%S") + '] Me->' +
+                                              send_name + ': ' + msg[send_name], 'utf8'))
                         else:
-                            name_not_found = True
-                    if name_not_found:
-                        client.send(bytes('[' + today.strftime("%H:%M:%S") + '] ' + send_name + ' not found', 'utf8'))
+                            client.send(bytes('I don’t know why you did it, but...', 'utf8'))
+                            client.send(bytes('[' + today.strftime("%H:%M:%S") + '] Me->Me: '
+                                              + msg[send_name], 'utf8'))
                         break
+                    # else:
+                    #     name_not_found = True
+                if name_not_found:
+                    client.send(bytes('[' + today.strftime("%H:%M:%S") + '] ' + send_name + ' not found', 'utf8'))
                     break
+                break
+        else:
+            msg_to_send = bytes(msg[send_name], 'utf8')
+            # if msg_to_send != bytes('[{esc}]', 'utf8') and msg_to_send != bytes('[{reload_clients}]', 'utf8'):
+            if msg_to_send != bytes('[{esc}]', 'utf8'):
+                client.send(bytes('[' + today.strftime("%H:%M:%S") + '] Me: ', 'utf8') + msg_to_send)
+                broadcast_without_addresse(name, msg_to_send, name + ': ')
+            # elif msg_to_send == bytes('[{reload_clients}]', 'utf8'):
+            #     client.send(bytes(json.dumps({'reload_clients': list(clients.keys())}), 'utf8'))
+            #     client.send(bytes('[' + today.strftime("%H:%M:%S") + '] ' + 'client list updated', 'utf8'))
             else:
-                msg = bytes(msg[send_name], 'utf8')
-                if msg != bytes('[{esc}]', 'utf8') and msg != bytes('[{reload_clients}]', 'utf8'):
-                    broadcast(msg, name + ': ')
-                elif msg == bytes('[{reload_clients}]', 'utf8'):
-                    client.send(bytes(json.dumps(clients), 'utf8'))
-                    client.send(bytes('[' + today.strftime("%H:%M:%S") + '] ' + 'client list updated', 'utf8'))
-                else:
-                    del clients[address]
-                    print(clients)  #for test
-                    broadcast(bytes('%s has left the chat.' % name, 'utf8'))
-                    client.close()
-                    break
+                del clients[name]
+                print(clients)  # for test
+                broadcast(bytes('%s has left the chat.' % name, 'utf8'))
+                reload_clients()
+                client.close()
+                break
 
 
 def broadcast(msg, prefix=''):
     today = datetime.datetime.today()
     for client in clients:
-        addresses[client].send(bytes('[' + today.strftime("%H:%M:%S") + '] ' + prefix, 'utf8') + msg)
+        if client != 'All chat clients':
+            clients[client].send(bytes('[' + today.strftime("%H:%M:%S") + '] ' + prefix, 'utf8') + msg)
 
 
-clients = {}
-addresses = {}
+def broadcast_without_addresse(name, msg, prefix=''):
+    today = datetime.datetime.today()
+    for client in clients:
+        if name != client:
+            if client != 'All chat clients':
+                clients[client].send(bytes('[' + today.strftime("%H:%M:%S") + '] ' + prefix, 'utf8') + msg)
+
+
+def reload_clients():
+    for client in clients:
+        if client != 'All chat clients':
+            clients[client].send(bytes(json.dumps({'reload_clients': list(clients.keys())}), 'utf8'))
+
+
+clients = {'All chat clients': ''}
+# addresses = {}
 
 SERVER = socket(AF_INET, SOCK_STREAM)
 SERVER.bind(('', 21090))
