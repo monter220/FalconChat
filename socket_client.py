@@ -10,7 +10,6 @@ def receive():
             msg = client_socket.recv(1024).decode('utf8')
             if msg.find('{"reload_clients":') != -1:
                 msg = json.loads(msg)
-                print(msg)                                      # for testing
                 client_list.delete(0, tkinter.END)
                 msg = msg['reload_clients']
                 for i in msg:
@@ -27,17 +26,12 @@ def send(event=None):
     new_msg.set("")
     if msg == '[{esc}]':
         esc()
-    # elif msg == '[{reload_clients}]':
-    #     update_clients_list()
     else:
-        # send_name = new_destination.get()
-        # new_destination.set(send_name)
         if client_list.curselection().__len__() == 0:
             send_name = 'All chat clients'
         else:
             send_name = client_list.get(client_list.curselection()[0])
         send_msg = {send_name: msg}
-        print(send_msg)  # for test
         msg = json.dumps(send_msg)
         client_socket.send(bytes(msg, 'utf8'))
 
@@ -49,13 +43,6 @@ def esc(event=None):
     client_socket.send(bytes(msg, 'utf8'))
     client_socket.close()
     top.quit()
-
-
-# def update_clients_list(event=None):
-#     msg = '[{reload_clients}]'
-#     send_msg = {'': msg}
-#     msg = json.dumps(send_msg)
-#     client_socket.send(bytes(msg, 'utf8'))
 
 
 top = tkinter.Tk()
@@ -70,14 +57,8 @@ client_list = tkinter.Listbox(messages_frame, height=15, width=25)
 client_list.pack(side=tkinter.LEFT, fill=tkinter.BOTH)
 messages_frame.pack()
 
-# client_update_button = tkinter.Button(text='Update clients-list', command=update_clients_list)
-# client_update_button.pack(side=tkinter.LEFT)
-
 new_msg = tkinter.StringVar()
 new_msg.set('Put your name here')
-
-# new_destination = tkinter.StringVar()
-# new_destination.set('All chat clients')
 
 quit_button = tkinter.Button(text='esc', command=esc)
 quit_button.pack(side=tkinter.RIGHT)
@@ -87,9 +68,6 @@ send_button.pack(side=tkinter.RIGHT)
 entry_field = tkinter.Entry(textvariable=new_msg)
 entry_field.bind('<Return>', send)
 entry_field.pack(side=tkinter.RIGHT)
-
-# entry_destination = tkinter.Entry(textvariable=new_destination)
-# entry_destination.pack(side=tkinter.TOP)
 
 top.protocol('WM_DELETE_WINDOW', esc)
 
