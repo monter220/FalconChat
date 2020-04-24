@@ -23,7 +23,7 @@ def start_client(client, address):
         for clients_name in clients:
             if name == clients_name:
                 name_correct = False
-                client.send(bytes('User with the same name already exists', 'utf8'))
+                client.send(bytes('Falcon with the same name already exists', 'utf8'))
                 client.send(bytes('Type your name and press enter!', 'utf8'))
                 msg = client.recv(1024).decode('utf8')
                 msg = json.loads(msg)
@@ -35,7 +35,7 @@ def start_client(client, address):
             break
 
     client.send(bytes('Welcome %s!' % name, 'utf8'))
-    msg = '%s has joined the chat!' % name
+    msg = '%s landed!' % name
     broadcast(bytes(msg, 'utf8'))
     clients[name] = client
     reload_clients()
@@ -44,7 +44,7 @@ def start_client(client, address):
         msg = client.recv(1024).decode('utf8')
         msg = json.loads(msg)
         send_name = list(msg.keys())[0]
-        if send_name != '' and send_name != 'All chat clients':
+        if send_name != '' and send_name != 'All falcons':
             name_not_found = True
             while True:
                 for client_name in clients:
@@ -71,7 +71,7 @@ def start_client(client, address):
                 broadcast_without_addresse(name, msg_to_send, name + ': ')
             else:
                 del clients[name]
-                broadcast(bytes('%s has left the chat.' % name, 'utf8'))
+                broadcast(bytes('%s flew away.' % name, 'utf8'))
                 reload_clients()
                 client.close()
                 break
@@ -80,7 +80,7 @@ def start_client(client, address):
 def broadcast(msg, prefix=''):
     today = datetime.datetime.today()
     for client in clients:
-        if client != 'All chat clients':
+        if client != 'All falcons':
             clients[client].send(bytes('[' + today.strftime("%H:%M:%S") + '] ' + prefix, 'utf8') + msg)
 
 
@@ -88,17 +88,17 @@ def broadcast_without_addresse(name, msg, prefix=''):
     today = datetime.datetime.today()
     for client in clients:
         if name != client:
-            if client != 'All chat clients':
+            if client != 'All falcons':
                 clients[client].send(bytes('[' + today.strftime("%H:%M:%S") + '] ' + prefix, 'utf8') + msg)
 
 
 def reload_clients():
     for client in clients:
-        if client != 'All chat clients':
+        if client != 'All falcons':
             clients[client].send(bytes(json.dumps({'reload_clients': list(clients.keys())}), 'utf8'))
 
 
-clients = {'All chat clients': ''}
+clients = {'All falcons': ''}
 
 SERVER = socket(AF_INET, SOCK_STREAM)
 SERVER.bind(('', 21090))
