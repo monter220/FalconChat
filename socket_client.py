@@ -10,6 +10,7 @@ def receive():
             msg = client_socket.recv(1024).decode('utf8')
             if msg.find('{"reload_clients":') != -1:
                 msg = json.loads(msg)
+                print(msg)                                      # for testing
                 client_list.delete(0, tkinter.END)
                 msg = msg['reload_clients']
                 for i in msg:
@@ -28,7 +29,7 @@ def send(event=None):
         esc()
     else:
         if client_list.curselection().__len__() == 0:
-            send_name = 'All chat clients'
+            send_name = 'All falcons'
         else:
             send_name = client_list.get(client_list.curselection()[0])
         send_msg = {send_name: msg}
@@ -46,7 +47,7 @@ def esc(event=None):
 
 
 top = tkinter.Tk()
-top.title('Test')
+top.title('FalconChat')
 
 messages_frame = tkinter.Frame()
 scrollbar = tkinter.Scrollbar(messages_frame)
