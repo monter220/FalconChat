@@ -68,7 +68,7 @@ def start_client(client, address):
             msg_to_send = bytes(msg[send_name], 'utf8')
             if msg_to_send != bytes('[{esc}]', 'utf8'):
                 client.send(bytes('[' + today.strftime("%H:%M:%S") + '] Me: ', 'utf8') + msg_to_send)
-                broadcast_without_addresse(name, msg_to_send, name + ': ')
+                broadcast_without_address(name, msg_to_send, name + ': ')
             else:
                 del clients[name]
                 broadcast(bytes('%s flew away.' % name, 'utf8'))
@@ -84,7 +84,7 @@ def broadcast(msg, prefix=''):
             clients[client].send(bytes('[' + today.strftime("%H:%M:%S") + '] ' + prefix, 'utf8') + msg)
 
 
-def broadcast_without_addresse(name, msg, prefix=''):
+def broadcast_without_address(name, msg, prefix=''):
     today = datetime.datetime.today()
     for client in clients:
         if name != client:
