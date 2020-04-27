@@ -43,13 +43,59 @@ def esc(event=None):
     msg = json.dumps(send_msg)
     client_socket.send(bytes(msg, 'utf8'))
     client_socket.close()
-    top.quit()
+    chat_window.quit()
 
 
-top = tkinter.Tk()
-top.title('FalconChat')
+def esc2(event=None):
+    connect_window.destroy()
+    quit()
 
-messages_frame = tkinter.Frame()
+
+def start_connect(event=None):
+    __IP_add = ip_add_ins.get()
+    __PORT = int(port_add_ins.get())
+    if not __IP_add:
+        __IP_add = 'localhost'
+    if not __PORT:
+        __PORT = 21090
+    else:
+        __PORT = int(__PORT)
+    connect = (__IP_add, __PORT)
+    client_socket.connect(connect)
+    connect_window.destroy()
+
+
+client_socket = socket(AF_INET, SOCK_STREAM)
+
+connect_window = tkinter.Tk()
+connect_window.title('Connection to FalconChat')
+connect_window.geometry('400x250')
+
+ip_add_pref = tkinter.Label(connect_window, text='Insert_server_ip_address:')
+ip_add_pref.pack(side=tkinter.TOP, fill=tkinter.BOTH)
+ip_add_ins = tkinter.StringVar(connect_window)
+ip_add_ins.set('127.0.0.1')
+ip_add_ins_field = tkinter.Entry(connect_window, textvariable=ip_add_ins)
+ip_add_ins_field.pack(side=tkinter.TOP)
+
+port_add_pref = tkinter.Label(connect_window, text='Insert_server_port:')
+port_add_pref.pack(side=tkinter.TOP, fill=tkinter.BOTH)
+port_add_ins = tkinter.StringVar(connect_window)
+port_add_ins.set('21090')
+port_add_ins_field = tkinter.Entry(connect_window, textvariable=port_add_ins)
+port_add_ins_field.pack(side=tkinter.TOP)
+
+connect_button = tkinter.Button(connect_window, text='Connect', command=start_connect)
+connect_button.pack(side=tkinter.TOP)
+
+connect_window.protocol('WM_DELETE_WINDOW', esc2)
+
+connect_window.mainloop()
+
+chat_window = tkinter.Tk()
+chat_window.title('FalconChat')
+
+messages_frame = tkinter.Frame(chat_window)
 scrollbar = tkinter.Scrollbar(messages_frame)
 scrollbar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
 msg_list = tkinter.Listbox(messages_frame, height=15, width=80, yscrollcommand=scrollbar.set)
@@ -58,36 +104,20 @@ client_list = tkinter.Listbox(messages_frame, height=15, width=25)
 client_list.pack(side=tkinter.LEFT, fill=tkinter.BOTH)
 messages_frame.pack()
 
-new_msg = tkinter.StringVar()
+new_msg = tkinter.StringVar(chat_window)
 new_msg.set('Put your name here')
 
-quit_button = tkinter.Button(text='esc', command=esc)
+quit_button = tkinter.Button(chat_window, text='esc', command=esc)
 quit_button.pack(side=tkinter.RIGHT)
-send_button = tkinter.Button(text='Send', command=send)
+send_button = tkinter.Button(chat_window, text='Send', command=send)
 send_button.pack(side=tkinter.RIGHT)
 
-entry_field = tkinter.Entry(textvariable=new_msg)
+entry_field = tkinter.Entry(chat_window, textvariable=new_msg)
 entry_field.bind('<Return>', send)
 entry_field.pack(side=tkinter.RIGHT)
 
-top.protocol('WM_DELETE_WINDOW', esc)
-
-IP_add = input('Server_IP_address: ')
-PORT = input('Server_port: ')
-if not IP_add:
-    IP_add = 'localhost'
-else:
-    IP_add = int(IP_add)
-if not PORT:
-    PORT = 21090
-else:
-    PORT = int(PORT)
-
-connect = (IP_add, PORT)
-
-client_socket = socket(AF_INET, SOCK_STREAM)
-client_socket.connect(connect)
+chat_window.protocol('WM_DELETE_WINDOW', esc)
 
 receive_thread = Thread(target=receive)
 receive_thread.start()
-tkinter.mainloop()
+chat_window.mainloop()
