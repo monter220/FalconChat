@@ -2,13 +2,13 @@ from socket import *
 from threading import Thread
 import json
 import datetime
+import time
 
 
 def accept_connections():
     while True:
         client, client_address = SERVER.accept()
         print('%s:%s has connected.' % client_address)
-        client.send(bytes('Type your name and press enter!', 'utf8'))
         address = '%s:%s' % (client_address[0], client_address[1])
         Thread(target=start_client, args=(client, address)).start()
 
@@ -24,6 +24,7 @@ def start_client(client, address):
             if name == clients_name:
                 name_correct = False
                 client.send(bytes('Falcon with the same name already exists', 'utf8'))
+                time.sleep(1)
                 client.send(bytes('Type your name and press enter!', 'utf8'))
                 msg = client.recv(1024).decode('utf8')
                 msg = json.loads(msg)
@@ -38,6 +39,7 @@ def start_client(client, address):
     msg = '%s landed!' % name
     broadcast(bytes(msg, 'utf8'))
     clients[name] = client
+    time.sleep(1)
     reload_clients()
 
     while True:
@@ -101,7 +103,16 @@ def reload_clients():
 clients = {'All falcons': ''}
 
 SERVER = socket(AF_INET, SOCK_STREAM)
-SERVER.bind(('', 21090))
+
+IP_add = input('IP_address: ')
+PORT = input('port: ')
+if not IP_add:
+    IP_add = 'localhost'
+if not PORT:
+    PORT = 21090
+else:
+    PORT = int(PORT)
+SERVER.bind((IP_add, PORT))
 
 if __name__ == "__main__":
     SERVER.listen(100)
