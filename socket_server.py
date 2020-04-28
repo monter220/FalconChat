@@ -25,7 +25,7 @@ def start_client(client, address):
                 name_correct = False
                 client.send(bytes('Falcon with the same name already exists', 'utf8'))
                 time.sleep(1)
-                client.send(bytes('Type your name and press enter!', 'utf8'))
+                client.send(bytes('Type your name in msg line and press enter!', 'utf8'))
                 msg = client.recv(1024).decode('utf8')
                 msg = json.loads(msg)
                 name = msg[list(msg.keys())[0]]
