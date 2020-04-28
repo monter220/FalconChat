@@ -3,6 +3,7 @@ from threading import Thread
 import json
 import datetime
 import time
+import configparser
 
 
 def accept_connections():
@@ -104,15 +105,13 @@ clients = {'All falcons': ''}
 
 SERVER = socket(AF_INET, SOCK_STREAM)
 
-IP_add = input('IP_address: ')
-PORT = input('port: ')
-if not IP_add:
-    IP_add = 'localhost'
-if not PORT:
-    PORT = 21090
-else:
-    PORT = int(PORT)
-SERVER.bind((IP_add, PORT))
+config = configparser.ConfigParser()
+config.read('socket_server.ini')
+
+IP_ADD = config['SETTING']['IP_ADD']
+PORT = int(config['SETTING']['PORT'])
+
+SERVER.bind((IP_ADD, PORT))
 
 if __name__ == "__main__":
     SERVER.listen(100)
