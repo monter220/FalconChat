@@ -116,7 +116,7 @@ client_list.pack(side=tkinter.LEFT, fill=tkinter.BOTH)
 messages_frame.pack()
 
 new_msg = tkinter.StringVar(chat_window)
-new_msg.set('Put your name here')
+new_msg.set('Put your msg here')
 
 quit_button = tkinter.Button(chat_window, text='esc', command=esc)
 quit_button.pack(side=tkinter.RIGHT)
