@@ -8,13 +8,14 @@ def receive():
     while True:
         try:
             msg = client_socket.recv(1024).decode('utf8')
+            print(msg)  # for testing
             if msg.find('{"reload_clients":') != -1:
+                print(msg)  # for testing
                 msg = json.loads(msg)
                 print(msg)                                      # for testing
                 client_list.delete(0, tkinter.END)
                 msg = msg['reload_clients']
                 for i in msg:
-                    print(i)
                     client_list.insert(0, i)
             else:
                 msg_list.insert(tkinter.END, msg)
@@ -62,6 +63,11 @@ def start_connect(event=None):
         __PORT = int(__PORT)
     connect = (__IP_add, __PORT)
     client_socket.connect(connect)
+    msg = new_name.get()
+    send_name = ''
+    send_msg = {send_name: msg}
+    msg = json.dumps(send_msg)
+    client_socket.send(bytes(msg, 'utf8'))
     connect_window.destroy()
 
 
@@ -84,6 +90,13 @@ port_add_ins = tkinter.StringVar(connect_window)
 port_add_ins.set('21090')
 port_add_ins_field = tkinter.Entry(connect_window, textvariable=port_add_ins)
 port_add_ins_field.pack(side=tkinter.TOP)
+
+new_name_pref = tkinter.Label(connect_window, text='What is your name?')
+new_name_pref.pack(side=tkinter.TOP, fill=tkinter.BOTH)
+new_name = tkinter.StringVar(connect_window)
+new_name.set('NAME')
+new_name_field = tkinter.Entry(connect_window, textvariable=new_name)
+new_name_field.pack(side=tkinter.TOP)
 
 connect_button = tkinter.Button(connect_window, text='Connect', command=start_connect)
 connect_button.pack(side=tkinter.TOP)
