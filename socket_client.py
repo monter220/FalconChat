@@ -8,9 +8,7 @@ def receive():
     while True:
         try:
             msg = client_socket.recv(1024).decode('utf8')
-            print(msg)  # for testing
             if msg.find('{"reload_clients":') != -1:
-                print(msg)  # for testing
                 msg = json.loads(msg)
                 print(msg)                                      # for testing
                 client_list.delete(0, tkinter.END)
