@@ -2,12 +2,14 @@ from socket import *
 from threading import Thread
 import tkinter
 import json
+from cryptography.fernet import Fernet
 
 
 def receive():
     while True:
         try:
-            msg = client_socket.recv(1024).decode('utf8')
+            msg = client_socket.recv(RRR).decode('utf8')
+            msg = decrypt(msg)
             if msg.find('{"reload_clients":') != -1:
                 msg = json.loads(msg)
                 print(msg)                                      # for testing
@@ -33,14 +35,14 @@ def send(event=None):
             send_name = client_list.get(client_list.curselection()[0])
         send_msg = {send_name: msg}
         msg = json.dumps(send_msg)
-        client_socket.send(bytes(msg, 'utf8'))
+        client_socket.send(bytes(encrypt(msg), 'utf8'))
 
 
 def esc(event=None):
     msg = '[{esc}]'
     send_msg = {'': msg}
     msg = json.dumps(send_msg)
-    client_socket.send(bytes(msg, 'utf8'))
+    client_socket.send(bytes(encrypt(msg), 'utf8'))
     client_socket.close()
     chat_window.quit()
 
@@ -65,9 +67,28 @@ def start_connect(event=None):
     send_name = ''
     send_msg = {send_name: msg}
     msg = json.dumps(send_msg)
-    client_socket.send(bytes(msg, 'utf8'))
+    client_socket.send(bytes(encrypt(msg), 'utf8'))
     connect_window.destroy()
 
+
+def encrypt(client_msg):
+    client_msg = bytes(client_msg, 'utf8')
+    crypt_msg = client_cipher.encrypt(client_msg)
+    send_crypt_msg = {client_key.decode('utf8'): crypt_msg.decode('utf8')}
+    msg = json.dumps(send_crypt_msg)
+    return msg
+
+
+def decrypt(msg):
+    server_crypt_msg = json.loads(msg)
+    server_cipher = Fernet(bytes(list(server_crypt_msg.keys())[0], 'utf8'))
+    msg = server_cipher.decrypt(bytes(server_crypt_msg[list(server_crypt_msg.keys())[0]], 'utf8')).decode('utf8')
+    return msg
+
+
+RRR = 1024
+client_key = Fernet.generate_key()
+client_cipher = Fernet(client_key)
 
 client_socket = socket(AF_INET, SOCK_STREAM)
 
